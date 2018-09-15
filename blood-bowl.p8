@@ -5,13 +5,6 @@ __lua__
 function _init()
 	cy=0
 	cx=0
-	piece=make_actor(112, 60)
-	piece.sp=2
-	piece.w=2
-	piece.h=2
-	piece.speed=1
-	piece.selected = false
-	piece.box = {x1=0,y1=0,x2=7,y2=7}
 
 	hand=make_actor(70, 50)
 	hand.sp=40
@@ -19,27 +12,37 @@ function _init()
 	hand.h=2
 	hand.speed=16
 
-	overlapped = false
+	selected = false
 
+	pieces = {}
 	game_objects={} --non piece 
+
+	spawn_players()
+
+	cursor_created = false
+	box_created = false
 
 end
 
 function _draw()
 	cls()
-	
+
 	map(screenx, screeny, cx, cy, 32, 32)
-	spr(piece.sp, piece.x, piece.y, piece.w, piece.h)
 	spr(hand.sp, hand.x, hand.y, hand.w, hand.h)
+
 	for g in all(game_objects) do
 		spr(g.sp, g.x, g.y, 2, 2)
 	end
 
-	print(overlapped, 80, 60, 8)
-	print(piece.selected, 80, 50, 8)
+	for p in all(pieces) do
+		spr(p.sp, p.x, p.y, 2,2)
+	end
 
+	draw_debug()
+	-- print(selected, 80, 50, 8)
+	-- print(#pieces, 80, 80, 8)
 end
-
+	
 function make_actor(x, y)
 		a={}
 		a.x = x
@@ -60,38 +63,25 @@ function make_actor(x, y)
 		return a
 	end
 
-	--not working for some reason :<
 	function draw_debug()
 		cpu = "cpu:"..(flr(stat(1)*100)).."%"
 		mem = "mem:"..(flr((stat(0)/256)*32)).."k"
 
-		print(cpu,40,5,7)
-		print(mem,75,5,7)
+		print(cpu,100,20,7)
+		print(mem,130,20,7)
 	end
 -->8
 --updates
 function _update60()
 	move_camera()
 	update_hand()
-	check_overlap()
 	update_piece()
-
-	draw_debug()
-
+	
 end
 
 function update_piece()
 	select_piece()
-
-	if piece.selected == true then
-		create_cursor(piece.x, piece.y -15, 10)
-	end
-
-	for g in all(game_objects) do
-		if piece.selected == false then
-			del(game_objects, g)
-		end
-	end
+	move_piece()
 end
 
 function move_camera()
@@ -105,7 +95,6 @@ function move_camera()
 	
 	camera(camera_x, camera_y)
 end
-
 
 function update_hand()
 	if btnp(0) then
@@ -122,31 +111,36 @@ function update_hand()
 	end
 end
 
-function check_overlap()
-		if hand.x >= piece.x and hand.x <= piece.x + 8 and hand.y >= piece.y and hand.y <= piece.y + 8 then
-			overlapped = true
-		else
-			overlapped = false
-		end
+function try_select()
+  for p in all(pieces) do 
+    if hand.x >= p.x and hand.x <= p.x + 8 and hand.y >= p.y and hand.y <= p.y + 8 and cursor_created == false then
+      selected = p
+      create_cursor(p.x, p.y -15, 10)
+      cursor_created = true
+      return true
+    end
 	end
+end
 
 function select_piece()
-	local lx = hand.x
-	local ly = hand.y
+  if btnp(5) then
+    selected = nil
+    del(game_objects, cursor)
+    del(game_objects, destination_box)
+    cursor_created = false
+    box_created = false
+  end
 
-	if overlapped == true and btn(4) then
-		piece.selected = true
-	end
+  if btnp(4) then
+    if not try_select() and selected and box_created == false then
+      create_destination_box(hand.x - 6, hand.y - 2, 8)
+      box_created = true
+   	end
+  end
+end
 
-	if piece.selected == true and btn(5) and overlapped == true then
-		piece.selected = false
-	end
-
-	if piece.selected == true and overlapped == false then
-		if btn(4) then
-			create_destination_box(lx - 6, ly - 2, 8)
-		end
-	end
+function move_piece()
+	
 end
 
 function create_cursor(x, y, sp)
@@ -161,6 +155,23 @@ function create_destination_box(x, y, sp)
 	destination_box.sp = sp
 
 	add(game_objects, destination_box)
+end
+
+function create_piece(x, y, sp)
+	p=make_actor(x, y)
+	p.sp=sp
+	p.w=2
+	p.h=2
+	p.speed=1
+	
+	p.box = {x1=0,y1=0,x2=7,y2=7}
+
+	add(pieces, p)
+end
+
+function spawn_players()
+	create_piece(95, 63, 2)
+	create_piece(127, 63, 2)
 end
 
 -->8
@@ -215,11 +226,6 @@ end
 
 		return ct or cb
 	end
-
-
-
-
-
 
 __gfx__
 000000000000000000000000000000000000000000000000bbbbbbbbbbbbbbbbcccccccccccccccc000000000000000000000000000000000000000000000000
