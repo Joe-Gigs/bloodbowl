@@ -13,14 +13,18 @@ function _init()
 	hand.speed=16
 
 	selected = false
+	to_move = false
 
 	pieces = {}
 	game_objects={} --non piece 
+	d_boxes={}
 
 	spawn_players()
 
 	cursor_created = false
 	box_created = false
+
+	destination_box={}
 
 end
 
@@ -38,8 +42,12 @@ function _draw()
 		spr(p.sp, p.x, p.y, 2,2)
 	end
 
+	for d in all(d_boxes) do
+		spr(d.sp, d.x, d.y, 2, 2)
+	end
+
 	draw_debug()
-	-- print(selected, 80, 50, 8)
+	print(selected, 80, 50, 8)
 	-- print(#pieces, 80, 80, 8)
 end
 	
@@ -123,23 +131,39 @@ function try_select()
 end
 
 function select_piece()
+	local lx=hand.x
+	local ly=hand.y 
+
   if btnp(5) then
-    selected = nil
+    selected = false
+    -- moved = nil 
     del(game_objects, cursor)
-    del(game_objects, destination_box)
+    del(d_boxes, destination_box)
     cursor_created = false
     box_created = false
   end
 
   if btnp(4) then
     if not try_select() and selected and box_created == false then
-      create_destination_box(hand.x - 6, hand.y - 2, 8)
+      create_destination_box(lx - 6, ly - 2, 8)
       box_created = true
    	end
   end
 end
 
+function try_move(x,y)
+	for p in all(pieces) do
+		to_move = p
+		p.x = x 
+		p.y = y
+		return true
+	end
+end
+
 function move_piece()
+	local lx=destination_box.x
+	local ly=destination_box.y
+
 	
 end
 
@@ -154,7 +178,7 @@ function create_destination_box(x, y, sp)
 	destination_box = make_actor(x,y)
 	destination_box.sp = sp
 
-	add(game_objects, destination_box)
+	add(d_boxes, destination_box)
 end
 
 function create_piece(x, y, sp)
