@@ -13,7 +13,7 @@ function _init()
 	hand.speed=16
 
 	selected = false
-	to_move = false
+	move_selected = false
 
 	pieces = {}
 	game_objects={} --non piece 
@@ -141,10 +141,12 @@ function select_piece()
 
   if btnp(5) then
     selected = false
+    move_selected = false
     del(game_objects, cursor)
     del(d_boxes, destination_box)
     cursor_created = false
     box_created = false
+    move_phase = 1
   end
 
 if move_phase == 1 then
@@ -157,16 +159,38 @@ if move_phase == 1 then
   end
 end
 
+function try_move()
+	local lx=destination_box.x
+	local ly=destination_box.y
+
+	for p in all(pieces) do
+		if move_phase == 2 and box_created == true then
+			-- if btnp(4) then
+			-- 	p.x = lx
+			-- 	p.y = ly
+			-- 	return true
+			
+				move_selected = p
+				return true
+			end
+
+			-- end
+		end
+	end
+
+
 function move_piece()
 	local lx=destination_box.x
 	local ly=destination_box.y
 
-
-
 	for p in all(pieces) do
-		
+		if move_phase == 2 then
+			if not try_move() and btnp(4) and move_selected and box_created then
+				p.x = lx
+				p.y = ly
+			end
+		end
 	end
-
 end
 
 function create_cursor(x, y, sp)
