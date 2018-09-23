@@ -159,37 +159,10 @@ if move_phase == 1 then
   end
 end
 
-function try_move()
-	local lx=destination_box.x
-	local ly=destination_box.y
-
-	for p in all(pieces) do
-		if move_phase == 2 and box_created == true then
-			-- if btnp(4) then
-			-- 	p.x = lx
-			-- 	p.y = ly
-			-- 	return true
-			
-				move_selected = p
-				return true
-			end
-
-			-- end
-		end
-	end
-
-
 function move_piece()
-	local lx=destination_box.x
-	local ly=destination_box.y
-
-	for p in all(pieces) do
-		if move_phase == 2 then
-			if not try_move() and btnp(4) and move_selected and box_created then
-				p.x = lx
-				p.y = ly
-			end
-		end
+	if move_phase == 2 and btnp(4) then
+		selected.x = destination_box.x
+		selected.y = destination_box.y
 	end
 end
 
